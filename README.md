@@ -55,7 +55,7 @@ contributors/your-name/
 Files go in the matching folder, then add a line in your `List.md` saying what the thing does and what it needs (an LCP, a module, a house rule).
 
 > [!IMPORTANT]
-> The `List.md` has an **AI** column if you want to flag something as written with AI help. (This helps people using your creation, when debugging or otherwise.)
+> The List.md has an **AI** column to flag creations made with AI help. Worth knowing if you're troubleshooting, since AI-generated logic can be messy, non-obvious or broken.
 
 ### Open the pull request
 
