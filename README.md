@@ -54,6 +54,8 @@ contributors/your-name/
 
 Files go in the matching folder, then add a line in your `List.md` saying what the thing does and what it needs (an LCP, a module, a house rule).
 
+The `List.md` has an **AI** column if you want to flag something as written with AI help. Optional, nobody checks it.
+
 ### Open the pull request
 
 Only your folder, only `.json` and `.md` files, and it merges on its own. Anything else is just a normal PR.
