@@ -1,0 +1,134 @@
+name: Auto-merge contributor PRs
+
+# pull_request_target runs this file from the base branch, so a PR cannot edit
+# its own merge rules. Nothing here checks out or executes PR content.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prefix = `contributors/${pr.user.login.toLowerCase()}/`;
+            const MARKER = '<!-- la-workshop-bot -->';
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: pr.number, per_page: 100,
+            });
+
+            const needsReview = [];
+            const broken = [];
+
+            if (!files.length)
+              needsReview.push('This pull request changes no files.');
+
+            for (const file of files)
+            {
+              if (!file.filename.toLowerCase().startsWith(prefix))
+                needsReview.push(`\`${file.filename}\` is outside \`${prefix}\`.`);
+              else if (!/\.(json|md)$/i.test(file.filename))
+                needsReview.push(`\`${file.filename}\` is not a .json or .md file.`);
+            }
+
+            // JSON is only parsed, never run.
+            const headRepo = pr.head.repo;
+            for (const file of files)
+            {
+              if (file.status === 'removed' || !/\.json$/i.test(file.filename))
+                continue;
+              if (!headRepo)
+              {
+                needsReview.push('The source branch is gone, cannot read the files.');
+                break;
+              }
+              try
+              {
+                const res = await github.rest.repos.getContent({
+                  owner: headRepo.owner.login,
+                  repo: headRepo.name,
+                  path: file.filename,
+                  ref: pr.head.sha,
+                });
+                JSON.parse(Buffer.from(res.data.content, 'base64').toString('utf8'));
+              }
+              catch (err)
+              {
+                broken.push(`\`${file.filename}\` is not valid JSON: ${err.message}`);
+              }
+            }
+
+            const say = async (body) =>
+            {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number: pr.number, per_page: 100,
+              });
+              const mine = comments.find(comment => comment.body.startsWith(MARKER));
+              const full = `${MARKER}\n${body}`;
+              if (mine && mine.body === full)
+                return;
+              if (mine)
+                await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body: full });
+              else
+                await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: full });
+            };
+
+            const label = async (name) =>
+            {
+              try
+              {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: [name] });
+              }
+              catch (err)
+              {
+                core.info(`Could not add the ${name} label: ${err.message}`);
+              }
+            };
+
+            if (broken.length)
+            {
+              await say(`Some files could not be parsed, so this one stays open:\n\n- ${broken.join('\n- ')}`);
+              await label('broken-json');
+              core.setFailed('Invalid JSON in the pull request.');
+              return;
+            }
+
+            if (needsReview.length)
+            {
+              await say(
+                `Not auto-merged, a human needs to look at it:\n\n- ${needsReview.join('\n- ')}\n\n` +
+                `Auto-merge only covers pull requests where every file lives in \`${prefix}\` and is a .json or .md file.`
+              );
+              await label('needs-review');
+              return;
+            }
+
+            try
+            {
+              await github.rest.pulls.createReview({
+                owner, repo, pull_number: pr.number, event: 'APPROVE',
+                body: 'Everything is inside your own folder.',
+              });
+            }
+            catch (err)
+            {
+              core.info(`Could not approve: ${err.message}`);
+            }
+
+            await github.rest.pulls.merge({
+              owner, repo, pull_number: pr.number,
+              merge_method: 'squash',
+              commit_title: `${pr.title} (#${pr.number})`,
+            });
+            await say('Merged. Everything was inside your own folder.');
