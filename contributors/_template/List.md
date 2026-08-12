@@ -1,6 +1,6 @@
 # Your name here
 
-A line about you, or nothing. Up to you.
+A line about you, or nothing.
 
 ## Automations
 

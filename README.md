@@ -10,10 +10,10 @@
 
 A place to dump and grab automations for [Lancer Automations](https://github.com/Agraael/lancer-automations).
 
-I'm not curating this. Everyone gets a folder named after their GitHub account, and what you put in yours is yours. A bot merges your pull request as long as you only touched your own folder, so you don't wait on me.
+I'm not curating this. Everyone gets a folder named after their GitHub account. A bot merges your pull request as long as you only touched your own folder.
 
 > [!WARNING]
-> An automation is JavaScript that runs in your world. Nobody reviews what lands here. Read what you import, the same way you would with any script you found on the internet.
+> An automation is JavaScript that runs in your world. Nobody reviews what lands here. Read what you import.
 
 ---
 
@@ -23,9 +23,7 @@ Browse the folders, each one has a `List.md` saying what's inside.
 
 **A single automation:** copy the whole `.json` text, then in the Activation Manager open an activation and hit **Paste** at the top right of the editor.
 
-**A pack or a startup script:** download the file, then **Import Pack** in the Activation Manager. You get a summary dialog to pick what actually gets applied.
-
-Item-based automations are tied to an item LID. If you don't own that item, the automation just sits there doing nothing.
+**A pack or a startup script:** download the file, then **Import Pack** in the Activation Manager. You get a summary dialog to pick what gets applied.
 
 ---
 
@@ -58,7 +56,7 @@ Files go in the matching folder, then add a line in your `List.md` saying what t
 
 ### Open the pull request
 
-Only your folder, only `.json` and `.md` files, and it merges on its own in about a minute. Touch anything else and it waits for me instead. That's the whole rule.
+Only your folder, only `.json` and `.md` files, and it merges on its own. Anything else is just a normal PR.
 
 ---
 
@@ -70,4 +68,4 @@ Wrong repo, this one is just storage. The real docs:
 - [Automation System](https://github.com/Agraael/lancer-automations/blob/main/doc/AUTOMATION_SYSTEM.md), triggers, filters, lifecycle
 - [API Reference](https://github.com/Agraael/lancer-automations/blob/main/doc/API_REFERENCE.md), everything on `api.`
 
-Workshop talk goes to the [workshop channel](https://discord.com/channels/426286410496999425/1537081666483527690) on the Lancer Discord. For the module itself, [my channel](https://discord.com/channels/426286410496999425/1436087781666455642) is the one.
+Workshop talk goes to the [workshop channel](https://discord.com/channels/426286410496999425/1537081666483527690) on the Lancer Discord. For the module itself, [my channel](https://discord.com/channels/426286410496999425/1436087781666455642).

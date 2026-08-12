@@ -131,4 +131,3 @@ jobs:
               merge_method: 'squash',
               commit_title: `${pr.title} (#${pr.number})`,
             });
-            await say('Merged. Everything was inside your own folder.');
