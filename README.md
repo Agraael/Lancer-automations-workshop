@@ -31,6 +31,8 @@ Browse the folders, each one has a `List.md` saying what's inside.
 
 > [!IMPORTANT]
 > If you share an automation that hooks into paid LCP content, keep the content itself out of it: no item descriptions, no copied text. It's a fine line and I doubt it'll ever be a problem, but if it goes overboard I reserve the right to wipe what crosses it.
+>
+> For item-linked activations the bot enforces one piece of this: `triggerDescription` and `effectDescription` must stay empty. The reaction popup shows the item's own text anyway, those fields only override it, so in a shared file they just end up carrying copied rules text. General activations can use them freely.
 
 ### Export it
 
@@ -52,7 +54,7 @@ contributors/your-name/
 └── Startups/
 ```
 
-Files go in the matching folder, then add a line in your `List.md` saying what the thing does and what it needs (an LCP, a module, a house rule).
+Files go in the matching folder, then add a line in your `List.md` saying what the thing does, what it needs (an LCP, a module, a house rule), and the LA version you tested it with.
 
 > [!IMPORTANT]
 > The List.md has an **AI** column to flag creations made with AI help. Worth knowing if you're troubleshooting, since AI-generated logic can be messy, non-obvious or broken.

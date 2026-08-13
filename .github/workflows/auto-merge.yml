@@ -30,6 +30,18 @@ jobs:
 
             const needsReview = [];
             const broken = [];
+            const notNeutral = [];
+
+            const checkDescriptions = (fileName, where, reaction) =>
+            {
+              if (!reaction || typeof reaction !== 'object')
+                return;
+              for (const key of ['triggerDescription', 'effectDescription'])
+              {
+                if (typeof reaction[key] === 'string' && reaction[key].trim() !== '')
+                  notNeutral.push(`\`${fileName}\`: ${where} has a non-empty \`${key}\`.`);
+              }
+            };
 
             if (!files.length)
               needsReview.push('This pull request changes no files.');
@@ -61,7 +73,18 @@ jobs:
                   path: file.filename,
                   ref: pr.head.sha,
                 });
-                JSON.parse(Buffer.from(res.data.content, 'base64').toString('utf8'));
+                const data = JSON.parse(Buffer.from(res.data.content, 'base64').toString('utf8'));
+                if (data && data.isGeneral === false && data.reaction)
+                  checkDescriptions(file.filename, `item activation \`${data.lid || '?'}\``, data.reaction);
+                if (data && data.itemReactions && typeof data.itemReactions === 'object')
+                {
+                  for (const [lid, group] of Object.entries(data.itemReactions))
+                  {
+                    const reactions = Array.isArray(group?.reactions) ? group.reactions : [];
+                    reactions.forEach((reaction, index) =>
+                      checkDescriptions(file.filename, `item activation \`${lid}\` #${index + 1}`, reaction));
+                  }
+                }
               }
               catch (err)
               {
@@ -101,6 +124,19 @@ jobs:
               await say(`Some files could not be parsed, so this one stays open:\n\n- ${broken.join('\n- ')}`);
               await label('broken-json');
               core.setFailed('Invalid JSON in the pull request.');
+              return;
+            }
+
+            if (notNeutral.length)
+            {
+              await say(
+                `Not merged: item-linked automations must keep \`triggerDescription\` and \`effectDescription\` empty.\n\n` +
+                `- ${notNeutral.join('\n- ')}\n\n` +
+                `**Why**: on an item activation the reaction popup already shows the item's own trigger/effect text from the importing user's world. These two fields only exist to override that text, so in a shared file they end up carrying the item's rules text, usually copied from an LCP. Keeping them empty keeps the workshop neutral toward the content the automation hooks into. General activations may use them freely, there is no item text to fall back on there.\n\n` +
+                `**How to fix**: open the activation in the Activation Manager, blank the trigger/effect description fields, and copy/export again. Or set both to \`""\` directly in the .json. Push the fix and this check reruns.`
+              );
+              await label('needs-changes');
+              core.setFailed('Item-linked automation with non-empty description fields.');
               return;
             }
 

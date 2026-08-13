@@ -7,8 +7,8 @@
       "onStatusRemoved"
     ],
     "evaluate": "const status = (triggerData.statusId || triggerData.effect?.name)?.toLowerCase();\nif (status !== \"lockon\" && status !== \"lock on\") return false;\n\nconst targetToken = triggerData.triggeringToken;\nif (!targetToken) return false;\n\n// 1. 리액터 토큰으로부터 15칸 이내에 있는지 거리 확인\nconst distance = api.getTokenDistance(reactorToken, targetToken);\nif (distance > 15) return false;\n\n// 2. 기록된 대상인지 확인\n//const flagKey = \"recordedLockonTokens\";\n//const recorded = reactorToken.actor?.getFlag(\"world\", flagKey) || [];\n//console.log(recorded);\n//if (!recorded.includes(targetToken.id)) return false;\n\n// 3. 잔여 Lock On 교차 검증\n//const isStillLockedOn = api.findEffectOnToken(targetToken, \"lockon\") ||\n//      targetToken.actor?.effects.some(e => e.statuses?.has(\"lockon\") && !e.disabled);\n//console.log(isStillLockedOn);\n//return !isStillLockedOn;\nreturn true;",
-    "triggerDescription": "Another character attacks a target within range 15 of you and consumes Lock On",
-    "effectDescription": "You may automatically hit their target with the Autopod.",
+    "triggerDescription": "",
+    "effectDescription": "",
     "actionType": "Reaction",
     "frequency": "Unlimited",
     "checkReaction": false,

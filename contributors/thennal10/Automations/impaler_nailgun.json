@@ -7,8 +7,8 @@
       "onHit"
     ],
     "evaluate": "return true;",
-    "triggerDescription": "On Hit",
-    "effectDescription": "Targets must succeed on a Hull save or become Immobilized until the end of their next turn.",
+    "triggerDescription": "",
+    "effectDescription": "",
     "actionType": "Automation",
     "frequency": "Unlimited",
     "checkReaction": false,
