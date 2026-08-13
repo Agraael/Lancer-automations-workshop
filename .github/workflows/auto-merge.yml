@@ -65,8 +65,6 @@ jobs:
               [/game\.settings\.set\s*\(\s*['"`](?!lancer-automations|world)/, 'foreign module settings write'],
               [/FilePicker\.upload/, 'file upload'],
             ];
-            const CODE_KEYS = new Set(['evaluate', 'activationCode', 'onInit', 'onMessage', 'code', 'condition']);
-
             const scanCode = (fileName, where, source) =>
             {
               for (const [pattern, label] of SUSPICIOUS_PATTERNS)
@@ -78,8 +76,15 @@ jobs:
                 suspicious.push(`\`${fileName}\`: ${where} has a very long single line (minified or obfuscated code).`);
             };
 
+            // Every string is scanned: code hides in serialized lambdas and template fields too.
             const collectCode = (node, fileName, where) =>
             {
+              if (typeof node === 'string')
+              {
+                if (node.trim())
+                  scanCode(fileName, `\`${where}\``, node);
+                return;
+              }
               if (Array.isArray(node))
               {
                 node.forEach((sub, index) => collectCode(sub, fileName, `${where}[${index}]`));
@@ -88,12 +93,7 @@ jobs:
               if (!node || typeof node !== 'object')
                 return;
               for (const [key, value] of Object.entries(node))
-              {
-                if (typeof value === 'string' && CODE_KEYS.has(key) && value.trim())
-                  scanCode(fileName, `\`${where}.${key}\``, value);
-                else
-                  collectCode(value, fileName, `${where}.${key}`);
-              }
+                collectCode(value, fileName, `${where}.${key}`);
             };
 
             if (!files.length)
@@ -101,7 +101,9 @@ jobs:
 
             for (const file of files)
             {
-              if (!file.filename.toLowerCase().startsWith(prefix))
+              if (/(^|\/)\.\.(\/|$)/.test(file.filename) || file.filename.includes('\\'))
+                needsReview.push(`\`${file.filename}\` has an unsafe path.`);
+              else if (!file.filename.toLowerCase().startsWith(prefix))
                 needsReview.push(`\`${file.filename}\` is outside \`${prefix}\`.`);
               else if (!/\.(json|md)$/i.test(file.filename))
                 needsReview.push(`\`${file.filename}\` is not a .json or .md file.`);
