@@ -1,0 +1,35 @@
+{
+  "isGeneral": false,
+  "lid": "mw_autopod",
+  "name": "",
+  "reaction": {
+    "triggers": [
+      "onStatusRemoved"
+    ],
+    "evaluate": "const status = (triggerData.statusId || triggerData.effect?.name)?.toLowerCase();\nif (status !== \"lockon\" && status !== \"lock on\") return false;\n\nconst targetToken = triggerData.triggeringToken;\nif (!targetToken) return false;\n\n// 1. 리액터 토큰으로부터 15칸 이내에 있는지 거리 확인\nconst distance = api.getTokenDistance(reactorToken, targetToken);\nif (distance > 15) return false;\n\n// 2. 기록된 대상인지 확인\n//const flagKey = \"recordedLockonTokens\";\n//const recorded = reactorToken.actor?.getFlag(\"world\", flagKey) || [];\n//console.log(recorded);\n//if (!recorded.includes(targetToken.id)) return false;\n\n// 3. 잔여 Lock On 교차 검증\n//const isStillLockedOn = api.findEffectOnToken(targetToken, \"lockon\") ||\n//      targetToken.actor?.effects.some(e => e.statuses?.has(\"lockon\") && !e.disabled);\n//console.log(isStillLockedOn);\n//return !isStillLockedOn;\nreturn true;",
+    "triggerDescription": "Another character attacks a target within range 15 of you and consumes Lock On",
+    "effectDescription": "You may automatically hit their target with the Autopod.",
+    "actionType": "Reaction",
+    "frequency": "Unlimited",
+    "checkReaction": false,
+    "requireCanProvoke": false,
+    "checkUsage": false,
+    "autoActivate": true,
+    "awaitActivationCompletion": false,
+    "triggerSelf": true,
+    "triggerOther": true,
+    "outOfCombat": false,
+    "onlyOnSourceMatch": false,
+    "activationType": "code",
+    "activationMode": "instead",
+    "activationMacro": "",
+    "activationCode": "const targetToken = triggerData.triggeringToken;\nif (!targetToken) return;\n\n// 기록 초기화\nconst flagKey = \"recordedLockonTokens\";\nlet recorded = reactorToken.actor.getFlag(\"world\", flagKey) || [];\nrecorded = recorded.filter(id => id !== targetToken.id);\nawait reactorToken.actor.setFlag(\"world\", flagKey, recorded);\n\n// 소유자 ID 가져오기\nconst ownerIds = api.getTokenOwnerUserId(reactorToken);\n\n// 영어 UI가 적용된 초이스 카드 생성\nawait api.startChoiceCard({\n    mode: \"or\",\n    userIdControl: ownerIds,\n    title: \"AUTONOMOUS ASSAULT\",\n    description: `Do you want to automatically hit ${targetToken.name} with the Autopod?`,\n    icon: \"fas fa-crosshairs\",\n    choices: [\n        {\n            text: \"Yes\",\n            icon: \"fas fa-bomb\",\n            callback: async () => {\n                // Sequencer 애니메이션 실행\n                const wfx = game.modules.get(\"lancer-weapon-fx\")?.api;\n\n                if (wfx && globalThis.Sequencer) {\n                    await Sequencer.Preloader.preloadForClients([\n                        \"modules/lancer-weapon-fx/soundfx/Autopod_Fire.ogg\",\n                        \"jb2a.template_circle.vortex.loop.blue\",\n                        \"modules/lancer-weapon-fx/soundfx/Autopod_Impact.ogg\",\n                        \"jb2a.impact.yellow.1\",\n                    ]);\n\n                    let sequence = new Sequence();\n\n                    sequence\n                        .sound()\n                        .file(\"modules/lancer-weapon-fx/soundfx/Autopod_Fire.ogg\")\n                        .volume(wfx.getEffectVolume(0.7))\n                        .effect()\n                        .xray(wfx.isEffectIgnoreFogOfWar())\n                        .aboveInterface(wfx.isEffectIgnoreLightingColoration())\n                        .file(\"jb2a.template_circle.vortex.loop.blue\")\n                        .endTime(4700)\n                        .scale(0.2)\n                        .tint(\"#787878\")\n                        .atLocation(reactorToken)\n                        .moveTowards(targetToken)\n                        .waitUntilFinished()\n                        .sound()\n                        .file(\"modules/lancer-weapon-fx/soundfx/Autopod_Impact.ogg\")\n                        .volume(0.7)\n                        .effect()\n                        .xray(wfx.isEffectIgnoreFogOfWar())\n                        .aboveInterface(wfx.isEffectIgnoreLightingColoration())\n                        .file(\"jb2a.impact.yellow.1\")\n                        .scale(0.6)\n                        .atLocation(targetToken);\n\n                    await sequence.play();\n                }\n\n                // 데미지 롤 API 실행\n                if (typeof api.executeDamageRoll === \"function\") {\n                    await api.executeDamageRoll(\n                        reactorToken,\n                        [targetToken],\n                        3,\n                        \"kinetic\",\n                        \"Autonomous Assault Damage\"\n                    );\n                } else if (targetToken.actor && typeof targetToken.actor.applyDamage === \"function\") {\n                    await targetToken.actor.applyDamage(3, \"kinetic\");\n                }\n\n                ui.notifications.info(`Successfully attacked ${targetToken.name} with Autopod!`);\n            }\n        },\n        {\n            text: \"No\",\n            icon: \"fas fa-times\",\n            callback: async () => {\n                ui.notifications.info(\"Autonomous assault canceled.\");\n            }\n        }\n    ]\n});\n",
+    "onInit": "",
+    "onMessage": "",
+    "reactionPath": "",
+    "comments": "",
+    "dispositionFilter": [
+      "hostile"
+    ]
+  }
+}
