@@ -10,10 +10,10 @@
 
 A place to dump and grab automations for [Lancer Automations](https://github.com/Agraael/lancer-automations).
 
-I'm not curating this. Everyone gets a folder named after their GitHub account. A bot merges your pull request as long as you only touched your own folder.
+I curate this only lightly. Everyone gets a folder named after their GitHub account. A bot merges your pull request as long as you only touched your own folder.
 
 > [!WARNING]
-> An automation is JavaScript that runs in your world. Nobody reviews what lands here. Read what you import.
+> An automation is JavaScript that runs in your world. If something shared here is broken or does anything shady, [open an issue](https://github.com/Agraael/Lancer-automations-workshop/issues).
 
 ---
 
