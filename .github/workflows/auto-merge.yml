@@ -1,17 +1,17 @@
-name: Auto-merge contributor PRs
+name: Review contributor PRs
 
 # pull_request_target runs this file from the base branch, so a PR cannot edit
-# its own merge rules. Nothing here checks out or executes PR content.
+# its own review rules. Nothing here checks out or executes PR content.
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
-  auto-merge:
+  review:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +31,7 @@ jobs:
             const needsReview = [];
             const broken = [];
             const notNeutral = [];
+            const suspicious = [];
 
             const checkDescriptions = (fileName, where, reaction) =>
             {
@@ -40,6 +41,58 @@ jobs:
               {
                 if (typeof reaction[key] === 'string' && reaction[key].trim() !== '')
                   notNeutral.push(`\`${fileName}\`: ${where} has a non-empty \`${key}\`.`);
+              }
+            };
+
+            const SUSPICIOUS_PATTERNS = [
+              [/\bfetch\s*\(/, 'network call (fetch)'],
+              [/\bXMLHttpRequest\b/, 'network call (XMLHttpRequest)'],
+              [/\bWebSocket\b/, 'network call (WebSocket)'],
+              [/\bsendBeacon\b/, 'network call (sendBeacon)'],
+              [/\bimport\s*\(\s*['"`]https?:/i, 'remote code import'],
+              [/\beval\s*\(/, 'eval'],
+              [/new\s+Function\s*\(/, 'dynamic Function constructor'],
+              [/\batob\s*\(/, 'base64 decoding'],
+              [/String\.fromCharCode/, 'char-code obfuscation'],
+              [/(\\x[0-9a-fA-F]{2}){8,}/, 'hex-escape obfuscation'],
+              [/(\\u[0-9a-fA-F]{4}){8,}/, 'unicode-escape obfuscation'],
+              [/[A-Za-z0-9+/]{200,}={0,2}/, 'long base64-like blob'],
+              [/document\.cookie/, 'cookie access'],
+              [/\blocalStorage\b|\bsessionStorage\b/, 'browser storage access'],
+              [/<script/i, 'script tag injection'],
+              [/\bdeleteDocuments\b/, 'mass document deletion'],
+              [/\bownership\b\s*[:=]/, 'document ownership change'],
+              [/game\.settings\.set\s*\(\s*['"`](?!lancer-automations|world)/, 'foreign module settings write'],
+              [/FilePicker\.upload/, 'file upload'],
+            ];
+            const CODE_KEYS = new Set(['evaluate', 'activationCode', 'onInit', 'onMessage', 'code', 'condition']);
+
+            const scanCode = (fileName, where, source) =>
+            {
+              for (const [pattern, label] of SUSPICIOUS_PATTERNS)
+              {
+                if (pattern.test(source))
+                  suspicious.push(`\`${fileName}\`: ${where} contains ${label}.`);
+              }
+              if (source.split('\n').some(line => line.length > 2000))
+                suspicious.push(`\`${fileName}\`: ${where} has a very long single line (minified or obfuscated code).`);
+            };
+
+            const collectCode = (node, fileName, where) =>
+            {
+              if (Array.isArray(node))
+              {
+                node.forEach((sub, index) => collectCode(sub, fileName, `${where}[${index}]`));
+                return;
+              }
+              if (!node || typeof node !== 'object')
+                return;
+              for (const [key, value] of Object.entries(node))
+              {
+                if (typeof value === 'string' && CODE_KEYS.has(key) && value.trim())
+                  scanCode(fileName, `\`${where}.${key}\``, value);
+                else
+                  collectCode(value, fileName, `${where}.${key}`);
               }
             };
 
@@ -74,6 +127,7 @@ jobs:
                   ref: pr.head.sha,
                 });
                 const data = JSON.parse(Buffer.from(res.data.content, 'base64').toString('utf8'));
+                collectCode(data, file.filename, '$');
                 if (data && data.isGeneral === false && data.reaction)
                   checkDescriptions(file.filename, `item activation \`${data.lid || '?'}\``, data.reaction);
                 if (data && data.itemReactions && typeof data.itemReactions === 'object')
@@ -140,6 +194,17 @@ jobs:
               return;
             }
 
+            if (suspicious.length)
+            {
+              await say(
+                `Held for a human look, the scanner flagged code patterns that are unusual for a table automation:\n\n` +
+                `- ${suspicious.join('\n- ')}\n\n` +
+                `This is not a verdict, legitimate uses and false positives happen. The repo owner will read the flagged code and merge manually if it's fine.`
+              );
+              await label('suspicious-code');
+              return;
+            }
+
             if (needsReview.length)
             {
               await say(
@@ -150,20 +215,8 @@ jobs:
               return;
             }
 
-            try
-            {
-              await github.rest.pulls.createReview({
-                owner, repo, pull_number: pr.number, event: 'APPROVE',
-                body: 'Everything is inside your own folder.',
-              });
-            }
-            catch (err)
-            {
-              core.info(`Could not approve: ${err.message}`);
-            }
-
-            await github.rest.pulls.merge({
-              owner, repo, pull_number: pr.number,
-              merge_method: 'squash',
-              commit_title: `${pr.title} (#${pr.number})`,
-            });
+            await say(
+              `First review passed: everything lives in your own folder, the JSON is valid, descriptions are clean, and the code scanner found nothing unusual.\n\n` +
+              `Waiting for the repo owner's approval to merge.`
+            );
+            await label('checks-passed');

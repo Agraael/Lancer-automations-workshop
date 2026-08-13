@@ -10,7 +10,7 @@
 
 A place to dump and grab automations for [Lancer Automations](https://github.com/Agraael/lancer-automations).
 
-I curate this only lightly. Everyone gets a folder named after their GitHub account. A bot merges your pull request as long as you only touched your own folder.
+I curate this only lightly. Everyone gets a folder named after their GitHub account. A bot runs a first review on your pull request, then it waits for my approval to merge.
 
 > [!WARNING]
 > An automation is JavaScript that runs in your world. If something shared here is broken or does anything shady, [open an issue](https://github.com/Agraael/Lancer-automations-workshop/issues).
@@ -61,7 +61,7 @@ Files go in the matching folder, then add a line in your `List.md` saying what t
 
 ### Open the pull request
 
-Only your folder, only `.json` and `.md` files, and it merges on its own. Anything else is just a normal PR.
+Only your folder, only `.json` and `.md` files. The bot reviews it, then I approve and merge.
 
 ---
 
