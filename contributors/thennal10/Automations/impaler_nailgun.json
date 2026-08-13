@@ -1,0 +1,33 @@
+{
+  "isGeneral": false,
+  "lid": "mw_impaler_nailgun",
+  "name": "",
+  "reaction": {
+    "triggers": [
+      "onHit"
+    ],
+    "evaluate": "return true;",
+    "triggerDescription": "On Hit",
+    "effectDescription": "Targets must succeed on a Hull save or become Immobilized until the end of their next turn.",
+    "actionType": "Automation",
+    "frequency": "Unlimited",
+    "checkReaction": false,
+    "requireCanProvoke": false,
+    "checkUsage": false,
+    "autoActivate": true,
+    "awaitActivationCompletion": false,
+    "triggerSelf": true,
+    "triggerOther": false,
+    "outOfCombat": true,
+    "onlyOnSourceMatch": true,
+    "activationType": "code",
+    "activationMode": "instead",
+    "activationMacro": "",
+    "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api)\n{\n    const targets = triggerData.targets?.map(t => t.target).filter(Boolean) || [];\n    for (const target of targets)\n    {\n        const result = await api.executeStatRoll(\n            target.actor, \n            \"HULL\", \n            \"Hull Save - Impaler Nailgun (> \" + reactorToken.actor.system.save + \")\", \n            reactorToken.actor.system.save);\n        if (!result.passed) {\n            api.applyEffectsToTokens({\n                tokens: [target],\n                effectNames: [\"immobilized\"],\n                duration: {label: \"end\", turns: 1},\n            });\n        }\n    }\n}",
+    "onInit": "",
+    "onMessage": "",
+    "reactionPath": "",
+    "comments": "",
+    "dispositionFilter": null
+  }
+}
