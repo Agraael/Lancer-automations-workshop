@@ -32,7 +32,7 @@ Browse the folders, each one has a `List.md` saying what's inside.
 > [!IMPORTANT]
 > If you share an automation that hooks into paid LCP content, keep the content itself out of it: no item descriptions, no copied text. It's a fine line and I doubt it'll ever be a problem, but if it goes overboard I reserve the right to wipe what crosses it.
 >
-> For item-linked activations the bot enforces one piece of this: `triggerDescription` and `effectDescription` must stay empty. The reaction popup shows the item's own text anyway, those fields only override it, so in a shared file they just end up carrying copied rules text. General activations can use them freely.
+> For item-linked activations the bot enforces one piece of this: `triggerDescription` and `effectDescription` must stay empty. The reaction popup shows the item's own text anyway, those fields only override it, thy must not carry the rules of these items. General activations can use them freely.
 
 ### Export it
 
