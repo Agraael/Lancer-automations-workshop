@@ -1,0 +1,148 @@
+{
+  "type": "lancer-automations-pack",
+  "version": 1,
+  "name": "Iconoclast Talent Tree",
+  "exportDate": "2026-09-13T06:49:31.213Z",
+  "itemReactions": {
+    "ms_iconoclast": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "actions[0]",
+          "triggers": [
+            "onActivation"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Quick Action",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    const isTranscending = api.findEffectOnToken(reactorToken, \"Transcending\").name == \"Transcending\";\n    const rangeD = 3 + isTranscending * 5;\n\n    const selection = await api.chooseToken(reactorToken, {\n        title: \"Memetic Spark\",\n        range: rangeD,\n        includeSelf: false,\n        count: 1\n    });\n    \n\tif (!selection || (Array.isArray(selection) && selection.length === 0)) {\n        return;\n    };\n\n    function cleanText(html) {\n        const doc = new DOMParser().parseFromString(html, \"text/html\");\n        return (doc.body.textContent || \"\")\n            .replace(/’/g, \"'\")\n            .replace(/\\s+/g, \" \");\n    };\n\n    const nhps = reactorToken.actor.items.filter(ownedItem => {\n        const system = ownedItem.system;\n        if (!system || system.destroyed) return false;\n\n        const tags = system.tags ?? [];\n        const hasTag = id => tags.some(tag => tag.lid === id);\n\n        const text = cleanText(\n            `${system.description ?? \"\"} ${system.effect ?? \"\"}`\n        );\n\n        // Some items grant AI in their rules but lack the actual tag.\n        const grantsAI = hasTag(\"tg_ai\") || /\\b(?:gains?|grants?)\\b[^.!?;]*\\bAI tag\\b/i.test(text);\n\n        const cannotCascade = hasTag(\"tg_no_cascade\") || /\\b(?:cannot|can\\s+not|can't)\\s+(?:enter\\s+)?cascade\\b/i.test(text);\n\n        return grantsAI && !cannotCascade;\n    });\n\n    const damage = 1 + nhps.length + isTranscending * 4;\n\n    await api.executeDamageRoll(reactorToken, selection[0], damage, \"energy\", \"MEMETIC SPARK\", {ap: true});\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "t_iconoclast": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "ranks[1].actions[0]",
+          "triggers": [
+            "onActivation"
+          ],
+          "evaluate": "function (triggerType,triggerData,reactorToken,item,activationName,api) {\n\n    return \"Actor.\" + triggerData.item.parent.id == reactorToken.actor.system.pilot.id;\n}",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Free Action",
+          "frequency": "1/Round",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    const chosenTokens = await api.chooseToken(reactorToken, {\n        title: \"TRANSMUTING SPARK\",\n        range: 1,\n\t\tpattern: \"line\",\n        areaRange: 4\n    });\n    await api.executeDamageRoll(reactorToken, chosenTokens, 2, \"energy\", \"TRANSMUTING SPARK\", {ap: true});\n\tapi.dispatchCustomTrigger(\"transmutingSpark\", {triggeringToken: reactorToken})\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": true,
+          "triggerTarget": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "ranks[2]",
+          "triggers": [
+            "transmutingSpark"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    if (api.findEffectOnToken(reactorToken, \"Transcending\").name == \"Transcending\") {return;}\n    const getFlag = api.getTokenFlags(reactorToken, 'transcendence')\n    var dice = 0\n    console.log(getFlag)\n    if (getFlag == undefined) {\n        var dice = 2\n    } else  {var dice = getFlag - 1};\n    if (dice != 1) {await api.addTokenFlags(reactorToken, {'transcendence': dice})};\n    console.log(dice)\n    if (dice == 1) {\n        await api.addTokenFlags(reactorToken, {'transcendence': 3})\n        await api.applyEffectsToTokens({\n        tokens: [reactorToken],\n        effectNames: {\n            name: \"Transcending\",\n            icon: \"systems/lancer/assets/icons/white/orbital.svg\",\n            isCustom: true\n        },\n        duration: {\n            label: \"end\",\n            turns: 1,\n            rounds: 0,\n            overrideTurnOriginId: reactorToken.id\n        }\n    });\n}\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "ranks[2]",
+          "triggers": [
+            "onStatusApplied"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    return triggerData.effect.name == \"Transcending\" ;\n}",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function(triggerType, triggerData, reactorToken, item, activationName, api) {\n    await api.applyEffectsToTokens({\n    tokens: [reactorToken],\n    effectNames: \"Hover\",\n    duration: {\n        label: \"end\",\n        turns: 1,\n        rounds: 0,\n        overrideTurnOriginId: reactorToken.id\n    }\n});\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        }
+      ]
+    }
+  },
+  "generalReactions": {},
+  "startupScripts": []
+}
