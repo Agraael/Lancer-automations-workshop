@@ -7,8 +7,8 @@
       "onUpdate"
     ],
     "evaluate": "// Trigger on onUpdate not onMove so that the final distance is correct.\n// On an update that has some defined movement, check the distance for adjacency\nif (['x', 'y', 'elevation'].some(k => triggerData.change?.[k] !== undefined)) {\n        return triggerData.distanceToTrigger <= 1;\n}\n\nreturn false;",
-    "triggerDescription": "A character ends a movement adjacent to you.",
-    "effectDescription": "You may Boost, ignoring reactions and engagement. After doing so, attacks against you receive +1 Difficulty until the end of your next turn.",
+    "triggerDescription": "",
+    "effectDescription": "",
     "actionType": "Reaction",
     "frequency": "1/Round",
     "checkReaction": true,
