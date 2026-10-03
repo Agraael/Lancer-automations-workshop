@@ -1,0 +1,37 @@
+{
+  "isGeneral": false,
+  "lid": "ms_flicker_field_projector",
+  "name": "",
+  "reaction": {
+    "triggers": [
+      "onMove",
+      "onActivation"
+    ],
+    "evaluate": "// Max 1 stack\nif (api.findEffectsOnToken(reactorToken, \"invisible\", {hasFlags: [\"flicker_field\"]}).length > 0) return false;\n\n// We don't have a stack and we're boosting\nif (triggerData.actionName === \"Boost\") return true;\n// Is this a regular move on our turn?\nif (game.combat?.combatant?.tokenId == reactorToken.id && triggerType == 'onMove'){\n    const moveInfo = triggerData.moveInfo;\n    return (! (moveInfo.isInvoluntary || moveInfo.isTeleport || moveInfo.isFreeMovement));\n}\n\nreturn false;",
+    "triggerDescription": "Whenever you Boost or make a standard move",
+    "effectDescription": "You project a holographic pattern around you, leaving dazzling afterimages that make it hard to discern your precise location: you count as Invisible the next time you’re attacked.\n\nYou can only benefit from one instance of this effect at a time.",
+    "actionType": "Automation",
+    "frequency": "Unlimited",
+    "checkReaction": false,
+    "requireCanProvoke": false,
+    "checkUsage": false,
+    "autoActivate": true,
+    "awaitActivationCompletion": false,
+    "triggerSelf": true,
+    "triggerOther": false,
+    "triggerTarget": false,
+    "outOfCombat": false,
+    "onlyOnSourceMatch": false,
+    "sceneReactor": "off",
+    "sceneId": "",
+    "activationType": "code",
+    "activationMode": "instead",
+    "activationMacro": "",
+    "activationCode": "// apply will be a Boost activation or an onMove. If it's an onMove,\n// it's from our standard move, and should be limited to once per turn.\n// otherwise, it's from a boost and can be as often as we boost.\n\n// we've already filtered out nonstandard movement in the evaluate.\nif (triggerType === 'onMove'){\n    // This really should be once per turn but realistically players only get one turn per round\n    if (! await api.consumeOncePerRound(reactorToken, 'flicker_field_standard_move')) return;\n}\n\nawait api.applyEffectsToTokens({\n    \ttokens: [reactorToken],\n    \teffectNames: 'invisible',\n    \tnote: 'Flicker Field Projector (1 charge)',\n    \tnotify: {source: item.name, whisper: false},\n\t},{\n    \tstack: 1,\n    \tconsumption: {\n        \ttrigger: ['onHit', 'onMiss', 'onTechHit', 'onTechMiss'],\n    \t\trole: 'target',\n        },\n        flicker_field: true,\n    }\n);",
+    "onInit": "",
+    "onMessage": "",
+    "reactionPath": "",
+    "comments": "Dusk Wing - Flicker Field Projector",
+    "dispositionFilter": null
+  }
+}
