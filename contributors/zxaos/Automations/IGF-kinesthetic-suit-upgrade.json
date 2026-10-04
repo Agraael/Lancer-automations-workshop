@@ -1,0 +1,36 @@
+{
+  "isGeneral": false,
+  "lid": "ms_exo_kinesthetic_suit_upgrade",
+  "name": "",
+  "reaction": {
+    "triggers": [
+      "onUpdate"
+    ],
+    "evaluate": "// Trigger on onUpdate not onMove so that the final distance is correct.\n// On an update that has some defined movement, check the distance for adjacency\nif (['x', 'y', 'elevation'].some(k => triggerData.change?.[k] !== undefined)) {\n        return triggerData.distanceToTrigger <= 1;\n}\n\nreturn false;",
+    "triggerDescription": "",
+    "effectDescription": "",
+    "actionType": "Reaction",
+    "frequency": "1/Round",
+    "checkReaction": true,
+    "requireCanProvoke": true,
+    "checkUsage": false,
+    "autoActivate": false,
+    "awaitActivationCompletion": false,
+    "triggerSelf": false,
+    "triggerOther": true,
+    "triggerTarget": false,
+    "outOfCombat": false,
+    "onlyOnSourceMatch": false,
+    "sceneReactor": "off",
+    "sceneId": "",
+    "activationType": "code",
+    "activationMode": "after",
+    "activationMacro": "",
+    "activationCode": "await Promise.all([\n    api.setReaction(reactorToken, false),\n\tapi.activateGeneralAction(reactorToken, 'Boost'),\n    api.addGlobalBonus(\n        reactorToken.actor,\n\t\t{\n            name: \"Spatial Awareness\",\n            type: \"difficulty\",\n            val: 1,\n            rollTypes: [\"attack\"],\n            applyToTargetter: true\n        },{\n            duration: 'end',\n            durationTurns: 1,\n            origin: reactorToken,\n            refresh: true\n        })\n]);",
+    "onInit": "",
+    "onMessage": "",
+    "reactionPath": "actions[0]",
+    "comments": "",
+    "dispositionFilter": null
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "type": "lancer-automations-pack",
+  "version": 1,
+  "name": "zxaos-balor",
+  "exportDate": "2026-10-03T03:07:21.156Z",
+  "itemReactions": {
+    "mf_balor": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "traits[1]",
+          "triggers": [
+            "onTurnEnd",
+            "onStructure",
+            "onStress"
+          ],
+          "evaluate": "switch (triggerType) {\n    case \"onTurnEnd\":\n        // We have to check here early otherwise the suppression will have \n        // already been removed by the time the activation code runs.\n        return ! api.findEffectOnToken(reactorToken, \"Regeneration Suppression\");\n    default:\n        return true;\n}",
+          "comments": "Regeneration",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "switch (triggerType) {\n    // If we are suppressed, this will not fire since the evaluation will skip it.\n    case 'onTurnEnd': {\n        const actor = reactorToken.actor;\n        const { value: hpCur, max: hpMax } = actor.system.hp;\n        const hpMissing = hpMax - hpCur\n\n        if (hpMissing <= 0) break; // Nothing to regenerate\n        \n        // this is the divisor for the regen, so half (2.0) when core is active, a quarter (4.0) otherwise.\n        const regenFactor = api.hasStatus(reactorToken, 'core_power_active') ? 2 : 4;\n        const regen = Math.min(Math.ceil(hpMax / regenFactor), hpMissing);\n  \n        actor.modifyTokenAttribute('hp', regen, true, true); // no need to await this\n        ChatMessage.create({\n            speaker: ChatMessage.getSpeaker({ actor }),\n            content: `<b>${actor.name}</b> regenerated ${regen} ${game.i18n.localize('lancer.common-sheet.shortStats.hp')}.`\n        });\n        break;\n    }\n    case 'onStructure':\n    case 'onStress':\n        api.applyEffectsToTokens(\n            {\n                tokens: [reactorToken],\n                effectNames: {name: 'Regeneration Suppression', icon: 'modules/lancer-automations/icons/pause-button.svg', isCustom: true},\n                note: 'Suppresses end of turn Balor regeneration',\n                duration: api.untilEndOfTurn(reactorToken),\n                refresh: true\n            }\n        );\n        break;\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "traits[2]",
+          "triggers": [
+            "onExitCombat"
+          ],
+          "evaluate": "// Run only if combat is over, not if the token is deleted, and we aren't at full hp.\nreturn ! game.combat && reactorToken.actor.system.hp.value < reactorToken.actor.system.hp.max;",
+          "comments": "Self-Perpetuating",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const actor = reactorToken.actor;\nconst { confirmed } = await api.askCard({\n    title: 'Balor Self-Perpetuating',\n    description: `${actor.name} may regenerate full HP without spending repairs if you rest.`,\n    yesText: 'Rest',\n    yesIcon: 'fas fa-first-aid',\n    noText: 'No Rest',\n    owner: reactorToken,\n    originToken: reactorToken\n});\n\nif (confirmed){\n    await actor.update({ 'system.hp.value': actor.system.hp.max });\n    ChatMessage.create({\n        speaker: ChatMessage.getSpeaker({ actor }),\n        content: `<b>${actor.name}</b> regenerates all HP via Self-Perpetuating.`\n    });\n}\n",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "traits[0]",
+          "triggers": [
+            "onTurnStart"
+          ],
+          "evaluate": "//return api.getTokenDistance(reactorToken, triggerData.triggeringToken, true) < 2;\nreturn true;",
+          "comments": "Scouring Swarm",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const turnTokenId = triggerData.triggeringToken.id\nconst turnActorId = triggerData.triggeringToken.actor.uuid;\n\n// Collect any tokens including deployables in range 1 that are the triggering token, or owned by the triggering token\nlet adjacentTokens = api.getTokensInRange(\n    reactorToken, \n    {\n        range: 1,\n        includeHidden: true,\n        includeDeployables: true,\n        includeElevation: true,\n        filter: (token) => (token.id === turnTokenId || token.document.getFlag('lancer-automations', 'ownerActorUuid') === turnActorId),\n    }\n);\n\nif (adjacentTokens.length < 1) return;\n\nlet core = api.hasStatus(reactorToken, 'core_power_active')? 4 : 2;\nawait api.executeDamageRoll(reactorToken, adjacentTokens, core, 'kinetic', 'Scouring Swarm');",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": false,
+          "triggerOther": true,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": [
+            "neutral",
+            "hostile",
+            "secret"
+          ]
+        }
+      ]
+    }
+  },
+  "generalReactions": {},
+  "startupScripts": []
+}

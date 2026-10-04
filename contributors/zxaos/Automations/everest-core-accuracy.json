@@ -1,0 +1,36 @@
+{
+  "isGeneral": false,
+  "lid": "mf_standard_pattern_i_everest",
+  "name": "",
+  "reaction": {
+    "triggers": [
+      "onActivation"
+    ],
+    "evaluate": "return true;",
+    "triggerDescription": "",
+    "effectDescription": "",
+    "actionType": "Automation",
+    "frequency": "Unlimited",
+    "checkReaction": false,
+    "requireCanProvoke": false,
+    "checkUsage": false,
+    "autoActivate": true,
+    "awaitActivationCompletion": false,
+    "triggerSelf": true,
+    "triggerOther": false,
+    "triggerTarget": false,
+    "outOfCombat": false,
+    "onlyOnSourceMatch": true,
+    "sceneReactor": "off",
+    "sceneId": "",
+    "activationType": "code",
+    "activationMode": "instead",
+    "activationMacro": "",
+    "activationCode": "await api.addGlobalBonus(\n    reactorToken.actor,\n    {\n        id: 'everest_powerup_acc',\n        name: 'Power Up',\n        type: 'accuracy',\n        val: 1,\n        rollTypes: ['attack', 'tech_attack', 'check'],\n    },\n    {\n        duration: 'indefinite',\n        consumption: { trigger: 'onExitCombat' },\n    }\n);",
+    "onInit": "",
+    "onMessage": "",
+    "reactionPath": "core_system",
+    "comments": "Core power accuracy bonus",
+    "dispositionFilter": null
+  }
+}
