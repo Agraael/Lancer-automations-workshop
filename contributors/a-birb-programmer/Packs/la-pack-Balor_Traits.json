@@ -1,0 +1,81 @@
+{
+  "type": "lancer-automations-pack",
+  "version": 1,
+  "name": "Balor Traits",
+  "exportDate": "2026-09-23T21:59:51.890Z",
+  "itemReactions": {
+    "mf_balor": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "traits[1]",
+          "triggers": [
+            "onTurnEnd",
+            "onStructure",
+            "onStress"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\nreturn !(api.findEffectOnToken(reactorToken,\"Regen Disabled\")?.name == \"Regen Disabled\")}",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n\n    if (triggerType == \"onStructure\" || triggerType == \"onStress\") {\n        await api.applyEffectsToTokens({\n            tokens: [reactorToken],\n            effectNames: {\n                name: \"Regen Disabled\",\n                icon: \"systems/lancer/assets/icons/white/status_downandout.svg\",\n                isCustom: true\n            },\n            duration: {\n                label: \"end\",\n                turns: 1,\n                rounds: 0,\n                overrideTurnOriginId: reactorToken.id\n            }\n        });\n        return;\n    }\n    const corePower = 1 + 1 * api.hasStatus(reactorToken, \"core_power_active\")\n    const regenHP = Math.round(reactorToken.actor.system.hp.max * corePower / 4 )\n    const newHP = Math.min(reactorToken.actor.system.hp.value + regenHP, reactorToken.actor.system.hp.max)\n\tawait reactorToken.actor.update({ \"system.hp.value\": newHP });\n    }",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "traits[0]",
+          "triggers": [
+            "onTurnStart"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    if (triggerData.distanceToTrigger !== 1) {\n        return false;\n    };\n    if (api.isHostile(reactorToken, triggerData.triggeringToken)) {\n        return true;\n    };\n    return false;\n}",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n\tconst damageRoll = 2 + 2 * api.hasStatus(reactorToken, \"core_power_active\")\n    await api.executeDamageRoll(reactorToken, [triggerData.triggeringToken], damageRoll, \"kinetic\", \"SCOURING SWARM\")\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": false,
+          "triggerOther": true,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        }
+      ]
+    }
+  },
+  "generalReactions": {},
+  "startupScripts": []
+}

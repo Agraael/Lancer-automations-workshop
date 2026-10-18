@@ -1,0 +1,111 @@
+{
+  "type": "lancer-automations-pack",
+  "version": 1,
+  "name": "Executioner",
+  "exportDate": "2026-09-29T04:29:30.409Z",
+  "itemReactions": {
+    "t_executioner": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "ranks[0]",
+          "triggers": [
+            "onHit"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\nconst weapon = triggerData.weapon;\nif (!weapon) return false;\n\nconst size = String(weapon.system?.size ?? \"\").toLowerCase();\nconst isHeavy = size === \"heavy\" || size === \"superheavy\";\nconst isMelee = /\\bmelee\\b/i.test(api.getWeaponType(weapon));\n\nreturn isHeavy && isMelee && api.checkGate(reactorToken, \"executioner_one\"); }",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    \n    const choice = await api.askCard({\n  title: \"Backswing Cut\",\n  description: \"Target a different enemy within threat?\",\n  yesText: \"Use\",\n  noText: \"Skip\",\n  owner: reactorToken,\n  originToken: reactorToken,\n  item\n});\n     if (!choice.confirmed) return;\n    \n    const hitIds = new Set(\n    (triggerData.targets ?? []).map(entry => entry.target.id)\n  );\n\n  const candidates = canvas.tokens.placeables.filter(token =>\n    token.actor &&\n    token.id !== reactorToken.id &&\n    !hitIds.has(token.id)\n  );\n\n  if (!candidates.length) return;\n    const threat = await api.getMaxWeaponReach_WithBonus(triggerData.weapon)\n    const target = await api.chooseToken(reactorToken, {\n        title: \"Select Token\",\n        range: threat,\n        includeSelf: false,\n        count: 1,\n\t\tselection: candidates,\n    });\n    if (!target?.[0]) return;\n    \n\n    if (!await api.consumeOncePerRound(\n      reactorToken,\n      \"executioner_one\"\n    )) return;\n    \n    await api.beginWeaponAttackFlow(triggerData.weapon, {\n        targets: target\n        }, {flow_bonus: [{\n      id: foundry.utils.randomID(),\n      name: \"Backswing Cut\",\n      type: \"target_modifier\",\n      subtype: \"half_damage\"\n    }]})\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "ranks[1]",
+          "triggers": [
+            "onHit"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\nconst weapon = triggerData.weapon;\nif (!weapon) return false;\n\nconst size = String(weapon.system?.size ?? \"\").toLowerCase();\nconst isHeavy = size === \"heavy\" || size === \"superheavy\";\nconst isMelee = /\\bmelee\\b/i.test(api.getWeaponType(weapon));\nconst critTargets = (triggerData.targets ?? [])\n  .filter(entry => entry.crit)\n  .map(entry => entry.target);\n    \nif (!critTargets.length) return false;\n\nreturn isHeavy && isMelee && api.checkGate(reactorToken, \"executioner_two\"); }",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    \n    const choice = await api.askCard({\n  title: \"Wide Arc Cleave\",\n  description: \"Choose any amount of tokens within Threat.\",\n  yesText: \"Use\",\n  noText: \"Skip\",\n  owner: reactorToken,\n  originToken: reactorToken,\n  item\n});\n     if (!choice.confirmed) return;\n    \n    const hitIds = new Set(\n    (triggerData.targets ?? []).map(entry => entry.target.id)\n  );\n\n  const candidates = canvas.tokens.placeables.filter(token =>\n    token.actor &&\n    token.id !== reactorToken.id &&\n    !hitIds.has(token.id)\n  );\n\n  if (!candidates.length) return;\n    const threat = await api.getMaxWeaponReach_WithBonus(triggerData.weapon)\n    const target = await api.chooseToken(reactorToken, {\n        title: \"Select Token\",\n        range: threat,\n        includeSelf: false,\n\t\tselection: candidates,\n        count: -1\n    });\n    if (!target?.[0]) return;\n    \n\n    if (!await api.consumeOncePerRound(\n      reactorToken,\n      \"executioner_two\"\n    )) return;\n    \n    await api.executeDamageRoll(reactorToken, target, 3, \"kinetic\", \"Wide Arc Cleave\")\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "ranks[2]",
+          "triggers": [
+            "onMiss"
+          ],
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\nconst weapon = triggerData.weapon;\nif (!weapon) return false;\n\nconst size = String(weapon.system?.size ?? \"\").toLowerCase();\nconst isHeavy = size === \"heavy\" || size === \"superheavy\";\nconst isMelee = /\\bmelee\\b/i.test(api.getWeaponType(weapon));\n\nreturn isHeavy && isMelee && api.checkGate(reactorToken, \"executioner_three\"); }",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "async function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    const choice = await api.askCard({\n  title: \"No Escape\",\n  description: \"Target a different enemy within threat?\",\n  yesText: \"Use\",\n  noText: \"Skip\",\n  owner: reactorToken,\n  originToken: reactorToken,\n  item\n});\n     if (!choice.confirmed) return;\n    \n    const hitIds = new Set(\n    (triggerData.targets ?? []).map(entry => entry.target.id)\n  );\n\n  const candidates = canvas.tokens.placeables.filter(token =>\n    token.actor &&\n    token.id !== reactorToken.id &&\n    !hitIds.has(token.id)\n  );\n\n  if (!candidates.length) return;\n    const threat = await api.getMaxWeaponReach_WithBonus(triggerData.weapon)\n    const target = await api.chooseToken(reactorToken, {\n        title: \"Select Token\",\n        range: threat,\n        includeSelf: false,\n        count: 1,\n\t\tselection: candidates,\n    });\n    if (!target?.[0]) return;\n    \n\n    if (!await api.consumeOncePerRound(\n      reactorToken,\n      \"executioner_three\"\n    )) return;\n    \n    await api.beginWeaponAttackFlow(triggerData.weapon, {\n        targets: target\n        })\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": false,
+          "dispositionFilter": null
+        }
+      ]
+    }
+  },
+  "generalReactions": {},
+  "startupScripts": []
+}
