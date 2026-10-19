@@ -2,7 +2,7 @@
   "type": "lancer-automations-pack",
   "version": 1,
   "name": "Nuclear Cavalier",
-  "exportDate": "2026-09-15T15:38:54.295Z",
+  "exportDate": "2026-10-18T07:05:45.841Z",
   "itemReactions": {
     "t_nuclear_cavalier": {
       "itemType": "any",
@@ -14,7 +14,7 @@
             "onAttack",
             "onTechAttack"
           ],
-          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    var firstAttack = api.getTokenFlags(reactorToken, \"firstAttack\")\n    var firstTechAttack = api.getTokenFlags(reactorToken, \"firstTechAttack\");\n    const isCurrentTurn = game.combat?.combatant?.tokenId === reactorToken.id;\n    const isInDangerZone = api.inDangerZone(reactorToken);\n    if (firstAttack == undefined) {\n        var firstAttack = true\n    }\n    if (firstTechAttack == undefined) {\n        var firstTechAttack = true\n    }\n\tvar firstAttack = firstAttack && firstTechAttack\n    \n    if (firstAttack && isCurrentTurn && isInDangerZone) {\n        return true;\n    };\n    if (triggerType == \"onTurnStart\" || triggerType == \"onTechAttack\") {\n        return true;\n    };\n    return false;\n}",
+          "evaluate": "function (triggerType, triggerData, reactorToken, item, activationName, api) {\n    var firstAttack = api.getTokenFlags(reactorToken, \"firstAttack\")\n    var firstTechAttack = api.getTokenFlags(reactorToken, \"firstTechAttack\");\n    const isCurrentTurn = game.combat?.combatant?.tokenId === reactorToken.id;\n    const isInDangerZone = api.inDangerZone(reactorToken);\n    if (firstAttack == undefined) {\n        var firstAttack = true\n    }\n    if (firstTechAttack == undefined) {\n        var firstTechAttack = true\n    }\n\tvar firstAttack = firstAttack && firstTechAttack\n    \n    if (firstAttack && isCurrentTurn && isInDangerZone) {\n        return true;\n    };\n    if (triggerType == \"onTurnStart\") {\n        return true;\n    };\n    return false;\n}",
           "comments": "",
           "triggerDescription": "",
           "effectDescription": "",
@@ -38,6 +38,7 @@
           "triggerSelf": true,
           "triggerOther": false,
           "triggerTarget": false,
+          "triggerEnvironment": false,
           "outOfCombat": false,
           "dispositionFilter": null
         },
