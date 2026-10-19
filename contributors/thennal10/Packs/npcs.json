@@ -2,7 +2,7 @@
   "type": "lancer-automations-pack",
   "version": 1,
   "name": "NPC Pack",
-  "exportDate": "2026-09-20T13:47:18.240Z",
+  "exportDate": "2026-10-18T20:49:47.331Z",
   "itemReactions": {
     "npcf_mobile_printer_barricade": {
       "itemType": "any",
@@ -32,6 +32,41 @@
           "activationMacro": "",
           "activationCode": "await api.spawnHardCover(reactorToken, { count: 1, size: 2, range: 1, name: 'Mobile Printer' });",
           "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_rank_discipline_assault": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [],
+          "evaluate": "return true;",
+          "comments": "Does not distinguish between biological and mechanical NPCs (the mech tag requirement), only excludes deployables.",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "flow",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "",
+          "onInit": "api.ensureLinkedBonus({\n    items: [item],\n    bonusData: {\n        id: 'rank_discipline_acc',\n        name: 'Rank Discipline',\n        type: 'accuracy',\n        val: 1,\n        rollTypes: ['attack', 'check'], \n        condition: (state, actor, data, context) => {\n            const l_api = game.modules.get('lancer-automations').api;\n            const currentToken = actor?.token?.object \n            if (!currentToken) return false;\n\n            const allies = l_api.getTokensInRange(currentToken, { range: 1, disposition: 'friendly' });\n            // verify mech status\n            return allies.some(ally => {\n                if (!ally.actor) return false;\n\t\t\t\t\n                const docType = ally.actor.type;\n                return ['mech', 'npc'].includes(docType);\n            });\n        }\n    },\n    addOptions: {\n        duration: 'constant' \n    }\n});",
           "onMessage": "",
           "triggerSelf": true,
           "triggerOther": false,
@@ -72,6 +107,44 @@
           "triggerOther": false,
           "triggerTarget": false,
           "outOfCombat": false,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_grav_spike_seeder": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onActivation"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": true,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const targets = await api.chooseToken(reactorToken, {\n    title: \"GRAV SPIKE\",\n    range: 5,\n    count: 1,\n    filter: t => api.hasLineOfSight(reactorToken, t),\n    filterWarning: \"Target must be in Line of Sight\"\n});\nif (!targets || !targets.length) return;\n\nawait api.executeSaveVsEffect(targets, {\n    stat: \"SYS\",\n    title: \"Grav Spike\",\n    origin: reactorToken,\n    onFail: async (target) => {\n        await api.applyMark(reactorToken, [target], {\n            effect: { name: \"Grav Spike\", isCustom: true, icon: \"systems/lancer/assets/icons/white/thrown.svg\" },\n            flagKey: \"grav_spike_source\"\n        });\n        await api.addExtraActions(target.actor, {\n            name: \"Remove Grav Spike\",\n            activation: \"Quick\",\n            detail: \"Make a Systems save to remove the grav spike.\",\n            icon: \"fas fa-eject\"\n        });\n    }\n});",
+          "onInit": "api.addExtraActions(item, {\n    name: \"Detonate Grav Spikes\",\n    activation: \"Protocol\",\n    detail: \"Detonate all grav spikes. Targets take AP Explosive damage and are pulled 3 spaces.\",\n    icon: \"fas fa-explosion\"\n});",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
           "dispositionFilter": null
         }
       ]
@@ -145,6 +218,43 @@
           "triggerSelf": true,
           "triggerOther": false,
           "triggerTarget": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_hunker_down_assault": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onHit"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": true,
+          "actionType": "Reaction",
+          "frequency": "1/Round",
+          "checkReaction": true,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": false,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "await api.addGlobalBonus(reactorToken.actor, {\n    name: \"Hunker Down\",\n    type: \"immunity\",\n    uses: 1, \n    subtype: \"resistance\",\n    damageTypes: [\n        \"Kinetic\",\n        \"Energy\",\n        \"Explosive\",\n        \"Heat\",\n        \"Burn\",\n        \"Variable\"\n    ],\n    consumeOnUsage: true\n}, {\n    duration: \"end\", // just in case\n    origin: reactorToken.id,\n    consumption: {\n        trigger: \"onDamage\",\n    }\n});",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": false,
+          "triggerOther": false,
+          "triggerTarget": true,
           "outOfCombat": true,
           "dispositionFilter": null
         }
@@ -367,8 +477,327 @@
           "dispositionFilter": null
         }
       ]
+    },
+    "npcf_blind_witch": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTechHit"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": true,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const targets = triggerData.hitTokens\nawait api.executeSaveVsEffect(targets, {\n    stat: \"SYS\",\n    title: \"Blind\",\n    origin: reactorToken,\n    cardTitle: \"BLIND - SYSTEMS SAVE\",\n    cardDescription: (target) => `<b>${target.name}</b> must pass a Systems save or be <b>Blinded</b>.`,\n    effects: [\"blinded\"], duration: {label: 'end', turns: 1}\n\n});\n",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_predatory_logic_witch": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTechHit"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": true,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const target = triggerData.hitTokens[0];\n\nconst weapons = api.getWeapons(target).filter(weapon => !weapon.system?.tags?.some(tag => (tag.id ?? tag.lid) === 'tg_superheavy'));\nif (!weapons.length)\n    return ui.notifications.info(`Predatory Logic: ${target.name} has no non-Superheavy weapon.`);\n\nconst weapon = await api.pickCard(weapons, {\n    title: \"PREDATORY LOGIC\",\n    description: `Choose the weapon <b>${target.name}</b> attacks with.`,\n    entryIcon: (entry) => entry.img\n});\nif (!weapon)\n    return;\n\nawait api.beginWeaponAttackFlow(weapon, {}, { predatoryLogic: true });\n",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_tear_down_witch": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTechHit"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": true,
+          "onlyOnSourceMatch": true,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "// doing this with await activation because executeDamageRoll doesn't seem to work with the target otherwise\napi.afterFx(async () => {\n    const targets = triggerData.hitTokens;\n    await api.executeDamageRoll(reactorToken, targets, api.tierValue(reactorToken, [1, 2, 3]), \"Heat\", \"Tear Down\");\n    await api.applyMark(reactorToken, targets, {\n        effect: { name: \"Tear Down\", isCustom: true, icon: \"systems/lancer/assets/icons/white/damage_heat.svg\" },\n        flagKey: \"tearDownSourceId\"\n    });\n});",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTurnStart"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": true,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const targets = api.findMarkedTokens(reactorToken, \"Tear Down\", { flagKey: \"tearDownSourceId\" });\nif (!targets || targets.length === 0) return;\n\nawait api.executeDamageRoll(reactorToken, targets, \"4\", \"Heat\", \"Tear Down (Delayed)\");\nawait api.clearMarks(reactorToken, \"Tear Down\", { flagKey: \"tearDownSourceId\" });",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_blur_witch": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTurnStart"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "await api.applyEffectsToTokens({\n    tokens: [reactorToken],\n    effectNames: [\"invisible\"],\n    duration: { label: \"end\", turns: 0 }\n});",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
+    },
+    "npcf_pain_transference_witch": {
+      "itemType": "any",
+      "reactions": [
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onTechHit"
+          ],
+          "evaluate": "return true;",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": true,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "await api.applyEffectsToTokens({\n    tokens: triggerData.hitTokens,\n    effectNames: [{ name: \"Pain Transference\", icon: \"systems/lancer/assets/icons/white/balance.svg\", isCustom: true }],\n    duration: { label: \"end\", turns: 1, overrideTurnOriginId: reactorToken.id }\n});",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": true,
+          "triggerOther": false,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        },
+        {
+          "reactionPath": "",
+          "triggers": [
+            "onHeatGain"
+          ],
+          "evaluate": "return api.findEffectOnToken(triggerData.triggeringToken, 'Pain Transference');",
+          "comments": "",
+          "triggerDescription": "",
+          "effectDescription": "",
+          "isReaction": false,
+          "actionType": "Automation",
+          "frequency": "Unlimited",
+          "checkReaction": false,
+          "requireCanProvoke": false,
+          "checkUsage": false,
+          "autoActivate": true,
+          "awaitActivationCompletion": false,
+          "onlyOnSourceMatch": false,
+          "sceneReactor": "off",
+          "sceneId": "",
+          "activationType": "code",
+          "activationMode": "instead",
+          "activationMacro": "",
+          "activationCode": "const allies = api.getTokensInRange(triggerData.triggeringToken, { range: 5, disposition: 'friendly' });\nif (allies.length > 0) {\n    await api.executeDamageRoll(reactorToken, allies, triggerData.heatChange, \"Heat\", \"Pain Transference\");\n}",
+          "onInit": "",
+          "onMessage": "",
+          "triggerSelf": false,
+          "triggerOther": true,
+          "triggerTarget": false,
+          "triggerEnvironment": false,
+          "outOfCombat": true,
+          "dispositionFilter": null
+        }
+      ]
     }
   },
-  "generalReactions": {},
+  "generalReactions": {
+    "Detonate Grav Spikes": {
+      "triggers": [
+        "onActivation"
+      ],
+      "evaluate": "return true;",
+      "comments": "",
+      "triggerDescription": "",
+      "effectDescription": "",
+      "isReaction": false,
+      "actionType": "Automation",
+      "frequency": "Unlimited",
+      "checkReaction": false,
+      "requireCanProvoke": false,
+      "checkUsage": true,
+      "autoActivate": true,
+      "awaitActivationCompletion": false,
+      "onlyOnSourceMatch": true,
+      "sceneReactor": "off",
+      "sceneId": "",
+      "activationType": "code",
+      "activationMode": "instead",
+      "activationMacro": "",
+      "activationCode": "const marked = api.findMarkedTokens(reactorToken, \"Grav Spike\", { flagKey: \"grav_spike_source\" });\nif (!marked.length) {\n    ui.notifications.info(\"No Grav Spikes to detonate.\");\n    return;\n}\n\nconst dmg = api.tierValue(reactorToken, [4, 6, 8]);\n\nawait api.executeDamageRoll(reactorToken, marked, dmg, \"Explosive\", \"Detonate Grav Spikes\", { ap: true });\n\nawait api.knockBackToken(marked, 3, { \n    triggeringToken: reactorToken, \n    title: \"GRAV SPIKE PULL\",\n    description: \"Select destination to pull the target up to 3 spaces.\"\n});\n\nawait api.clearMarks(reactorToken, \"Grav Spike\", { flagKey: \"grav_spike_source\" });\nfor (const t of marked) {\n    await api.removeExtraActions(t.actor, \"Remove Grav Spike\");\n}",
+      "onInit": "",
+      "onMessage": "",
+      "triggerSelf": true,
+      "triggerOther": false,
+      "triggerTarget": false,
+      "outOfCombat": true,
+      "dispositionFilter": null
+    },
+    "Remove Grav Spike": {
+      "triggers": [
+        "onActivation"
+      ],
+      "evaluate": "return true;",
+      "comments": "",
+      "triggerDescription": "",
+      "effectDescription": "",
+      "isReaction": false,
+      "actionType": "Automation",
+      "frequency": "Unlimited",
+      "checkReaction": false,
+      "requireCanProvoke": false,
+      "checkUsage": true,
+      "autoActivate": true,
+      "awaitActivationCompletion": false,
+      "onlyOnSourceMatch": true,
+      "sceneReactor": "off",
+      "sceneId": "",
+      "activationType": "code",
+      "activationMode": "instead",
+      "activationMacro": "",
+      "activationCode": "const gravEffect = api.findEffectsOnToken(reactorToken, \"Grav Spike\")[0];\nconst seederId = gravEffect?.flags?.['lancer-automations']?.grav_spike_source;\nconst seederToken = seederId ? canvas.tokens.get(seederId) : null;\n\nawait api.executeSaveVsEffect([reactorToken], {\n    stat: \"SYS\",\n    title: \"Remove Grav Spike\",\n    origin: seederToken,\n    onPass: async (target) => {\n        await api.deleteEffect(reactorToken, gravEffect);\n        await api.removeExtraActions(reactorToken.actor, \"Remove Grav Spike\");\n    }\n});",
+      "onInit": "",
+      "onMessage": "",
+      "triggerSelf": true,
+      "triggerOther": false,
+      "triggerTarget": false,
+      "outOfCombat": true,
+      "dispositionFilter": null
+    }
+  },
   "startupScripts": []
 }

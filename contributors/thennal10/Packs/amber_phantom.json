@@ -34,7 +34,7 @@
           "onInit": "",
           "onMessage": "",
           "triggerSelf": true,
-          "triggerOther": false,
+          "triggerOther": true,
           "triggerTarget": false,
           "outOfCombat": false,
           "dispositionFilter": null
