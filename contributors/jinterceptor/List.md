@@ -11,4 +11,4 @@ Someone with little to no coding knowledge trying my best to make functional and
 ## Packs
 
 | File | What's in it | Needs | AI | LA version |
-| --- | Automations for all Re:Baked NPC abilities | Re:Baked NPC content; some abilities use Template Macro, Grid-Aware Auras, Token Attacher, or Terrain Height Tools | AI assisted | 4.5.5.1 |
+| `Packs/rebaked-npc-abilities.json` | Automations for all Re:Baked NPC abilities | Re:Baked NPC content; some abilities use Template Macro, Grid-Aware Auras, Token Attacher, or Terrain Height Tools | AI assisted | 4.5.5.1 |
