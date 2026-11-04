@@ -12,4 +12,4 @@ Someone with little to no coding knowledge trying my best to make functional and
 
 | File | What's in it | Needs | AI | LA version |
 |------|--------------|-------|----|------------|
-| `Packs/rebaked-npc-abilities.json` | Automations for all Re:Baked NPC abilities | Re:Baked NPC content; some abilities use Template Macro, Grid-Aware Auras, Token Attacher, or Terrain Height Tools; rebaked deployables.lcp | AI assisted | 4.5.5.1 |
+| `Packs/rebaked-npc-abilities.json` | Automations for all Re:Baked NPC abilities | Re:Baked NPC content; some abilities use Template Macro, Grid-Aware Auras, Token Attacher, or Terrain Height Tools. [rebaked deployables.lcp](https://github.com/jinterceptor/Rebaked-Deployables) | AI assisted | 4.5.5.1 |
