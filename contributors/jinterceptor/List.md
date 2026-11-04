@@ -11,5 +11,4 @@ Someone with little to no coding knowledge trying my best to make functional and
 ## Packs
 
 | File | What's in it | Needs | AI | LA version |
-| --- | --- | --- | --- | --- |
-| `Packs/misc NPC automations.json` | 21 item groups and 4 general groups providing tested NPC automations for Archer, Breacher, Hive, Priest, Sentinel, and Striker Grunt features. | Lancer Automations; Sequencer; JB2A; Template Macro; Lancer Weapon FX; NPC Rebaked | Yes, manually tested | 4.1.8 |
+| --- | Automations for all Re:Baked NPC abilities | Re:Baked NPC content; some abilities use Template Macro, Grid-Aware Auras, Token Attacher, or Terrain Height Tools | AI assisted | 4.5.5.1 |
